@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinTrek SIP Calculator</title>
+    <style>
+        /* Global styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('/Bg-pic.webp') no-repeat center center fixed; /* Background image */
+            background-size: cover; /* Ensure the image covers the whole screen */
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Container styling */
+        .container {
+            background: rgba(255, 255, 255, 0.1); /* Slight white shade */
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            max-width: 550px;
+            width: 100%;
+            backdrop-filter: blur(3px); /* Blurred background effect */
+        }
+
+        /* Title styling */
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #000000;
+        }
+
+        /* Form Group styling */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            outline: none;
+            background: rgba(255, 255, 255, 0.3); /* Slight transparency for inputs */
+            color: #333;
+            font-size: 16px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        input:focus, select:focus {
+            border-color: #54ee21; /* Blue border on focus */
+            background: rgba(255, 255, 255, 0.4); /* Slightly more visible on focus */
+        }
+
+        /* Button styling */
+        button {
+            width: 48%;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+
+        button#calculate {
+            background: #4caf50;
+            color: white;
+            border: none;
+        }
+
+        button#calculate:hover {
+            background: #45a049;
+            transform: translateY(-3px);
+        }
+
+        button.reset {
+            background: #f44336;
+            color: white;
+            border: none;
+        }
+
+        button.reset:hover {
+            background: #e53935;
+            transform: translateY(-3px);
+        }
+
+        /* Output section styling */
+        .output {
+            color: black;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.3); /* Slight transparency for output */
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+        }
+
+        .output p {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        .output span {
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        /* Hover effect for form */
+        .form-group input, .form-group select {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            transform: scale(1.02);
+        }
+
+        /* Responsive design */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            button {
+                width: 100%;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>FinTrek SIP Calculator</h1>
+        <div class="form-group">
+            <label for="frequency">Frequency of Investment</label>
+            <select id="frequency">
+                <option value="12">Monthly</option>
+                <option value="4">Quarterly</option>
+                <option value="2">Half-Yearly</option>
+                <option value="1">Yearly</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="amount">Monthly Investment Amount (₹)</label>
+            <input type="number" id="amount" placeholder="Enter Amount" min="0">
+        </div>
+        <div class="form-group">
+            <label for="rate">Expected Rate of Return (P.A. %)</label>
+            <input type="number" id="rate" placeholder="Enter rate of Return" min="0" max="100" step="0.01">
+        </div>
+        <div class="form-group">
+            <label for="tenure">Tenure (in years)</label>
+            <input type="number" id="tenure" placeholder="Enter Tenure" min="1" max="50" step="1">
+        </div>
+        <div>
+            <button id="calculate">Plan My Wealth</button>
+            <button id="reset" class="reset">Reset</button>
+        </div>
+        <div class="output" id="output">
+            <p>Your Future Value: ₹<span id="future-value">0</span> (<span id="future-value-round">0</span>)</p>
+            <p>Total Earnings: ₹<span id="total-earnings">0</span> (<span id="total-earnings-round">0</span>)</p>
+            <p>Total Amount Deposited: ₹<span id="total-deposited">0</span> (<span id="total-deposited-round">0</span>)</p>
+        </div>
+    </div>
+
+    <script>
+        function formatToCrores(value) {
+            if (value >= 10000000) {
+                return (value / 10000000).toFixed(2) + ' Crores';
+            } else if (value >= 100000) {
+                return (value / 100000).toFixed(2) + ' Lakhs';
+            }
+            return value.toFixed(2);
+        }
+
+        document.getElementById('calculate').addEventListener('click', function() {
+            const frequency = parseInt(document.getElementById('frequency').value);
+            const amount = parseFloat(document.getElementById('amount').value);
+            const rate = parseFloat(document.getElementById('rate').value) / 100;
+            const tenure = parseInt(document.getElementById('tenure').value);
+
+            if (isNaN(amount) || isNaN(rate) || isNaN(tenure) || tenure <= 0 || amount <= 0 || rate < 0) {
+                alert('Please enter valid inputs.');
+                return;
+            }
+
+            const n = frequency * tenure;
+            const r = rate / frequency;
+            const futureValue = amount * ((Math.pow(1 + r, n) - 1) / r) * (1 + r);
+            const totalDeposited = amount * n;
+            const totalEarnings = futureValue - totalDeposited;
+
+            document.getElementById('future-value').textContent = futureValue.toFixed(2);
+            document.getElementById('total-earnings').textContent = totalEarnings.toFixed(2);
+            document.getElementById('total-deposited').textContent = totalDeposited.toFixed(2);
+
+            document.getElementById('future-value-round').textContent = formatToCrores(futureValue);
+            document.getElementById('total-earnings-round').textContent = formatToCrores(totalEarnings);
+            document.getElementById('total-deposited-round').textContent = formatToCrores(totalDeposited);
+        });
+
+        document.getElementById('reset').addEventListener('click', function() {
+            document.getElementById('frequency').value = '12';
+            document.getElementById('amount').value = '';
+            document.getElementById('rate').value = '';
+            document.getElementById('tenure').value = '';
+            document.getElementById('future-value').textContent = '0';
+            document.getElementById('total-earnings').textContent = '0';
+            document.getElementById('total-deposited').textContent = '0';
+            document.getElementById('future-value-round').textContent = '0';
+            document.getElementById('total-earnings-round').textContent = '0';
+            document.getElementById('total-deposited-round').textContent = '0';
+        });
+    </script>
+</body>
+</html>
